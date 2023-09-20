@@ -1,0 +1,41 @@
+#依赖软件包安装
+sudo apt install uboot-tools libssl-dev flex bison
+
+#环境变量
+export CROSS_COMPILE=/home/ws/Src/hypervisor/arm-gnu-toolchain/bin/aarch64-none-elf-
+export XVISOR_DIR=/home/ws/Src/hypervisor/xvisor
+export BUSYBOX_DIR=/home/ws/Src/hypervisor/busybox
+export LINUX_DIR=/home/ws/Src/hypervisor/linux
+
+#编译xvisor
+cd $XVISOR_DIR
+make ARCH=arm generic-v8-defconfig
+make all
+make -C tests/arm64/virt-v8/basic
+
+#编译linux
+cd $LINUX_DIR
+cp -rf arch/arm64/configs/defconfig arch/arm64/configs/tmp-virt-v8_defconfig
+$XVISOR_DIR/tests/common/scripts/update-linux-defconfig.sh -p arch/arm64/configs/tmp-virt-v8_defconfig -f $XVISOR_DIR/xvisor/tests/arm64/virt-v8/linux/linux_extra.config
+make ARCH=arm64 tmp-virt-v8_defconfig
+make ARCH=arm64 Image dtbs -j 3
+
+#编译busybox
+cd $XVISOR_DIR
+cp tests/common/busybox/busybox-1.33.1_defconfig $BUSYBOX_DIR/.config
+cd $BUSYBOX_DIR
+make oldconfig
+make install
+mkdir -p ./_install/etc/init.d
+mkdir -p ./_install/dev
+mkdir -p ./_install/proc
+mkdir -p ./_install/sys
+ln -sf /sbin/init ./_install/init
+cp -f $XVISOR_DIR/tests/common/busybox/fstab ./_install/etc/fstab
+cp -f $XVISOR_DIR/tests/common/busybox/rcS ./_install/etc/init.d/rcS
+cp -f $XVISOR_DIR/tests/common/busybox/motd ./_install/etc/motd
+cp -f $XVISOR_DIR/tests/common/busybox/logo_linux_clut224.ppm ./_install/etc/logo_linux_clut224.ppm
+cp -f $XVISOR_DIR/tests/common/busybox/logo_linux_vga16.ppm ./_install/etc/logo_linux_vga16.ppm
+cd ./_install; find ./ | cpio -o -H newc > ../rootfs.img; cd -
+cd ./_install; find ./ | cpio -o -H newc | gzip -9 > ../rootfs.img; cd -
+genext2fs -b 6500 -N 1024 -U -d ./_install ./rootfs.ext2
