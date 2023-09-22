@@ -1,0 +1,21 @@
+
+/dts-v1/;
+
+#include "aarch64-qemu-virt.dtsi"
+
+/ {
+	compatible = "aarch64 qemu virt";
+	model = "aarch64 qemu virt";
+
+	chosen {
+		console = &SERIAL_MU;
+		bootcmd = /* Mount initrd device */
+			  "vfs mount initrd /",
+
+			  /* Run boot script */
+			  "vfs run /boot.xscript",
+
+			  /* Print banner */
+			  "vfs cat /system/banner.txt";
+	};
+};

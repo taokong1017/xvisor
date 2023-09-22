@@ -1,11 +1,14 @@
 #依赖软件包安装
-sudo apt install uboot-tools libssl-dev flex bison
+sudo apt install uboot-tools libssl-dev flex bison ninja-build libglib2.0-dev libpixman-1-dev libslirp-dev
 
 #环境变量
 export CROSS_COMPILE=/home/ws/Src/hypervisor/arm-gnu-toolchain/bin/aarch64-none-elf-
 export XVISOR_DIR=/home/ws/Src/hypervisor/xvisor
 export BUSYBOX_DIR=/home/ws/Src/hypervisor/busybox
 export LINUX_DIR=/home/ws/Src/hypervisor/linux
+export QEMU_DIR=/home/ws/Src/hypervisor/qemu
+export UBOOT_DIR=/home/ws/Src/hypervisor/u-boot
+export FIRMWARE=/home/ws/Src/hypervisor/arm-trusted-firmware
 
 #编译xvisor
 cd $XVISOR_DIR
@@ -18,7 +21,7 @@ cd $LINUX_DIR
 cp -rf arch/arm64/configs/defconfig arch/arm64/configs/tmp-virt-v8_defconfig
 $XVISOR_DIR/tests/common/scripts/update-linux-defconfig.sh -p arch/arm64/configs/tmp-virt-v8_defconfig -f $XVISOR_DIR/xvisor/tests/arm64/virt-v8/linux/linux_extra.config
 make ARCH=arm64 tmp-virt-v8_defconfig
-make ARCH=arm64 Image dtbs -j 3
+make ARCH=arm64 Image dtbs -j 8
 
 #编译busybox
 cd $XVISOR_DIR
@@ -55,6 +58,43 @@ cp -f ./tests/arm64/virt-v8/xscript/one_guest_virt-v8.xscript ./build/disk/boot.
 cp -f $LINUX_DIR/arch/arm64/boot/Image ./build/disk/images/arm64/virt-v8/Image
 dtc -q -I dts -O dtb -o ./build/disk/images/arm64/virt-v8/virt-v8.dtb ./tests/arm64/virt-v8/linux/virt-v8.dts
 cp -f $BUSYBOX_DIR/rootfs.img ./build/disk/images/arm64/virt-v8/rootfs.img
-genext2fs -B 4096 -b 32768 -d ./build/disk ./build/disk.img
+genext2fs -B 4096 -b 65535 -d ./build/disk ./build/disk.img
+mkimage -A arm64 -O linux -T kernel -C none -a 0x50000000 -e 0x50000000 -n Xvisor -d build/vmm.bin build/uvmm.bin
+mkimage -A arm64 -O linux -T ramdisk -a 0x00000000 -n "Xvisor Ramdisk" -d build/disk.img build/udisk.img
+
+#编译qemu
+cd $QEMU_DIR
+mkdir -p build
+cd build
+../configure --target-list=aarch64-softmmu --enable-slirp --enable-debug
+make -j 8
+
+#编译u-boot
+cd $UBOOT_DIR
+rm -rf .config
+make qemu_arm64_defconfig
+echo "CONFIG_SYS_TEXT_BASE=0x60000000" >> .config
+echo "CONFIG_TFABOOT=y" >> .config
+make -j8
+
+#编译arm-trusted，依赖u-boot.bin，生成flash.bin
+cd $FIRMWARE
+make PLAT=qemu bl1 fip BL33=$UBOOT_DIR/u-boot.bin QEMU_USE_GIC_DRIVER=QEMU_GICV3
+dd if=build/qemu/release/bl1.bin of=flash.bin
+dd if=build/qemu/release/fip.bin of=flash.bin seek=64 bs=4096 conv=notrunc
+
+#qemu启动
+$QEMU_DIR/build/qemu-system-aarch64 -nographic \
+	-M virt,secure=on,virtualization=on,gic-version=3 \
+	-cpu cortex-a72 -smp 4 -m 4G \
+	-bios $FIRMWARE/flash.bin \
+	-device loader,file="$XVISOR_DIR/build/uvmm.bin",addr=0x50000000,force-raw=on \
+	-device loader,file="$XVISOR_DIR/build/arch/arm/dts/arm/aarch64-qemu-virt.dtb",addr=0x58000000,force-raw=on \
+	-device loader,file="$XVISOR_DIR/build/udisk.img",addr=0x70000000,force-raw=on \
+	-device virtio-net-device,netdev=net0 \
+	-netdev user,id=net0,net=192.168.42.0/24,hostfwd=tcp:127.0.0.1:5555-:22 \
+	-device virtio-serial-device -chardev pty,id=serial3 -device virtconsole,chardev=serial3
+
+=> bootm 0x50000000 0x70000000 0x58000000
 
 
