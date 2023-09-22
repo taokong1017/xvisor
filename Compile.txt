@@ -10,11 +10,26 @@ export QEMU_DIR=/home/ws/Src/hypervisor/qemu
 export UBOOT_DIR=/home/ws/Src/hypervisor/u-boot
 export FIRMWARE=/home/ws/Src/hypervisor/arm-trusted-firmware
 
-#编译xvisor
-cd $XVISOR_DIR
-make ARCH=arm generic-v8-defconfig
-make all
-make -C tests/arm64/virt-v8/basic
+#编译qemu
+cd $QEMU_DIR
+mkdir -p build
+cd build
+../configure --target-list=aarch64-softmmu --enable-slirp --enable-debug
+make -j 8
+
+#编译u-boot
+cd $UBOOT_DIR
+rm -rf .config
+make qemu_arm64_defconfig
+echo "CONFIG_SYS_TEXT_BASE=0x50000000" >> .config
+echo "CONFIG_TFABOOT=y" >> .config
+make -j8
+
+#编译arm-trusted，依赖u-boot.bin，生成flash.bin
+cd $FIRMWARE
+make PLAT=qemu bl1 fip BL33=$UBOOT_DIR/u-boot.bin QEMU_USE_GIC_DRIVER=QEMU_GICV3
+dd if=build/qemu/release/bl1.bin of=flash.bin
+dd if=build/qemu/release/fip.bin of=flash.bin seek=64 bs=4096 conv=notrunc
 
 #编译linux
 cd $LINUX_DIR
@@ -43,8 +58,11 @@ cd ./_install; find ./ | cpio -o -H newc > ../rootfs.img; cd -
 cd ./_install; find ./ | cpio -o -H newc | gzip -9 > ../rootfs.img; cd -
 genext2fs -b 6500 -N 1024 -U -d ./_install ./rootfs.ext2
 
-#继续编译xvisor
+#编译xvisor
 cd $XVISOR_DIR
+make ARCH=arm generic-v8-defconfig
+make all
+make -C tests/arm64/virt-v8/basic
 mkdir -p ./build/disk/tmp
 mkdir -p ./build/disk/system
 cp -f ./docs/banner/roman.txt ./build/disk/system/banner.txt
@@ -61,27 +79,6 @@ cp -f $BUSYBOX_DIR/rootfs.img ./build/disk/images/arm64/virt-v8/rootfs.img
 genext2fs -B 4096 -b 65535 -d ./build/disk ./build/disk.img
 mkimage -A arm64 -O linux -T kernel -C none -a 0x50000000 -e 0x50000000 -n Xvisor -d build/vmm.bin build/uvmm.bin
 mkimage -A arm64 -O linux -T ramdisk -a 0x00000000 -n "Xvisor Ramdisk" -d build/disk.img build/udisk.img
-
-#编译qemu
-cd $QEMU_DIR
-mkdir -p build
-cd build
-../configure --target-list=aarch64-softmmu --enable-slirp --enable-debug
-make -j 8
-
-#编译u-boot
-cd $UBOOT_DIR
-rm -rf .config
-make qemu_arm64_defconfig
-echo "CONFIG_SYS_TEXT_BASE=0x60000000" >> .config
-echo "CONFIG_TFABOOT=y" >> .config
-make -j8
-
-#编译arm-trusted，依赖u-boot.bin，生成flash.bin
-cd $FIRMWARE
-make PLAT=qemu bl1 fip BL33=$UBOOT_DIR/u-boot.bin QEMU_USE_GIC_DRIVER=QEMU_GICV3
-dd if=build/qemu/release/bl1.bin of=flash.bin
-dd if=build/qemu/release/fip.bin of=flash.bin seek=64 bs=4096 conv=notrunc
 
 #qemu启动
 $QEMU_DIR/build/qemu-system-aarch64 -nographic \
