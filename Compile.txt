@@ -39,9 +39,8 @@ make ARCH=arm64 tmp-virt-v8_defconfig
 make ARCH=arm64 Image dtbs -j 8
 
 #编译busybox
-cd $XVISOR_DIR
-cp tests/common/busybox/busybox-1.33.1_defconfig $BUSYBOX_DIR/.config
 cd $BUSYBOX_DIR
+cp $XVISOR_DIR/tests/common/busybox/busybox-1.33.1_defconfig $BUSYBOX_DIR/.config
 make oldconfig
 make install
 mkdir -p ./_install/etc/init.d
@@ -55,12 +54,10 @@ cp -f $XVISOR_DIR/tests/common/busybox/motd ./_install/etc/motd
 cp -f $XVISOR_DIR/tests/common/busybox/logo_linux_clut224.ppm ./_install/etc/logo_linux_clut224.ppm
 cp -f $XVISOR_DIR/tests/common/busybox/logo_linux_vga16.ppm ./_install/etc/logo_linux_vga16.ppm
 cd ./_install; find ./ | cpio -o -H newc > ../rootfs.img; cd -
-cd ./_install; find ./ | cpio -o -H newc | gzip -9 > ../rootfs.img; cd -
-genext2fs -b 6500 -N 1024 -U -d ./_install ./rootfs.ext2
 
 #编译xvisor
 cd $XVISOR_DIR
-make ARCH=arm generic-v8-defconfig
+make ARCH=arm generic-v8-defconfig # make menuconfig
 make all
 make -C tests/arm64/virt-v8/basic
 mkdir -p ./build/disk/tmp
