@@ -90,8 +90,13 @@ $QEMU_DIR/build/qemu-system-aarch64 -nographic \
 	-device virtio-serial-device -chardev pty,id=serial3 -device virtconsole,chardev=serial3 -s -S
 
 => bootm 0x50000000 0x70000000 0x58000000
-XVisor# guest kick guest0
 XVisor# vserial bind guest0/uart0
 [guest0/uart0] basic# autoexec
 
 
+#objdump镜像
+./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d xvisor/build/vmm.elf > vmm.obj
+./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d linux/vmlinux > linux.obj
+./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d u-boot/u-boot > u-boot.obj
+./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d xvisor/build/tests/arm64/virt-v8/ \
+	basic/firmware.elf > firmware.elf
