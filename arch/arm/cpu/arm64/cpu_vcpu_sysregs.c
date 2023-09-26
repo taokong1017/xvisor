@@ -435,9 +435,9 @@ int cpu_vcpu_sysregs_init(struct vmm_vcpu *vcpu, u32 cpuid)
 		s->mpidr_el1 = (1 << 31) | vcpu->subid;
 		break;
 	case ARM_CPUID_ARMV7:
-	case ARM_CPUID_ARMV8:
-		s->midr_el1 = mrs(midr_el1);
-		s->mpidr_el1 = (1 << 31) | vcpu->subid;
+	case ARM_CPUID_ARMV8: // ARMV8
+		s->midr_el1 = mrs(midr_el1); // main ID register
+		s->mpidr_el1 = (1 << 31) | vcpu->subid; // guest->vcpu_count
 		break;
 	default:
 		s->midr_el1 = cpuid;

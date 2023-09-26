@@ -49,16 +49,16 @@ typedef struct arch_regs arch_regs_t;
  * in relevant defines in cpu_defines.h
  */
 struct arm_priv_ptrauth {
-	u64 apiakeylo_el1;			/* 0x0 */
-	u64 apiakeyhi_el1;			/* 0x8 */
-	u64 apibkeylo_el1;			/* 0x10 */
-	u64 apibkeyhi_el1;			/* 0x18 */
-	u64 apdakeylo_el1;			/* 0x20 */
-	u64 apdakeyhi_el1;			/* 0x28 */
-	u64 apdbkeylo_el1;			/* 0x30 */
-	u64 apdbkeyhi_el1;			/* 0x38 */
-	u64 apgakeylo_el1;			/* 0x40 */
-	u64 apgakeyhi_el1;			/* 0x48 */
+	u64 apiakeylo_el1;			/* 0x0 Pointer Authentication Key A for Instruction */
+	u64 apiakeyhi_el1;			/* 0x8 Pointer Authentication Key A for Instruction */
+	u64 apibkeylo_el1;			/* 0x10 Pointer Authentication Key B for Instruction */
+	u64 apibkeyhi_el1;			/* 0x18 Pointer Authentication Key B forInstruction */
+	u64 apdakeylo_el1;			/* 0x20 Pointer Authentication Key A for Data */
+	u64 apdakeyhi_el1;			/* 0x28 Pointer Authentication Key A for Data */
+	u64 apdbkeylo_el1;			/* 0x30 Pointer Authentication Key B for Data */
+	u64 apdbkeyhi_el1;			/* 0x38 Pointer Authentication Key B for Data */
+	u64 apgakeylo_el1;			/* 0x40 Pointer Authentication Key A for Code */
+	u64 apgakeyhi_el1;			/* 0x48 Pointer Authentication Key A for Code */
 };
 
 /* Note: This structure is accessed from assembly code
@@ -67,15 +67,13 @@ struct arm_priv_ptrauth {
  */
 struct arm_priv_vfp {
 	/* 64bit EL1/EL0 registers */
-	u32 mvfr0;				/* 0x0 */
-	u32 mvfr1;				/* 0x4 */
-	u32 mvfr2;				/* 0x8 */
-	u32 fpcr;				/* 0xC */
-	u32 fpsr;				/* 0x10 */
-	/* 32bit only registers */
-	u32 fpexc32;				/* 0x14 */
-	/* 32x 128bit floating point registers. */
-	u64 fpregs[64];				/* 0x18 */
+	u32 mvfr0;				/* 0x0 Media and VFP Feature Register 0 */
+	u32 mvfr1;				/* 0x4 Media and VFP Feature Register 1 */
+	u32 mvfr2;				/* 0x8 Media and VFP Feature Register 2 */
+	u32 fpcr;				/* 0xC Floating-point Control Register */
+	u32 fpsr;				/* 0x10 Floating-point Status Register */
+	u32 fpexc32;			/* 0x14 32bit only registers, isn't suit for aarch64 */
+	u64 fpregs[64];			/* 0x18 32x128bit floating point registers */
 } __packed;
 
 /* Note: This structure is accessed from assembly code
@@ -84,51 +82,33 @@ struct arm_priv_vfp {
  */
 struct arm_priv_sysregs {
 	/* 64bit EL1/EL0 registers */
-	u64 sp_el0;				/* 0x0 */
-	u64 sp_el1;				/* 0x8 */
-	u64 elr_el1;				/* 0x10 */
-	u64 spsr_el1;				/* 0x18 */
-	u64 midr_el1;				/* 0x20 */
-	u64 mpidr_el1;				/* 0x28 */
-	/* System control register. */
-	u64 sctlr_el1;				/* 0x30 */
-	/* Auxillary control register. */
-	u64 actlr_el1;				/* 0x38 */
-	/* Coprocessor access register.  */
-	u64 cpacr_el1;				/* 0x40 */
-	/* MMU translation table base 0. */
-	u64 ttbr0_el1;				/* 0x48 */
-	/* MMU translation table base 1. */
-	u64 ttbr1_el1;				/* 0x50 */
-	/* MMU translation control register. */
-	u64 tcr_el1;				/* 0x58 */
-	/* Exception status register. */
-	u64 esr_el1;				/* 0x60 */
-	/* Fault address register. */
-	u64 far_el1;				/* 0x68 */
-	/* Translation result. */
-	u64 par_el1;				/* 0x70 */
-	/* Memory attribute index Register */
-	u64 mair_el1;				/* 0x78 */
-	/* Vector base address register */
-	u64 vbar_el1;				/* 0x80 */
-	/* Context ID. */
-	u64 contextidr_el1;			/* 0x88 */
-	/* User RW Thread register. */
-	u64 tpidr_el0;				/* 0x90 */
-	/* Privileged Thread register. */
-	u64 tpidr_el1;				/* 0x98 */
-	/* User RO Thread register. */
-	u64 tpidrro_el0;			/* 0xA0 */
-	/* 32bit only registers */
-	u32 spsr_abt;				/* 0xA8 */
-	u32 spsr_und;				/* 0xAC */
-	u32 spsr_irq;				/* 0xB0 */
-	u32 spsr_fiq;				/* 0xB4 */
-	/* MMU domain access control register */
-	u32 dacr32_el2;				/* 0xB8 */
-	/* Fault status registers. */
-	u32 ifsr32_el2;				/* 0xBC */
+	u64 sp_el0;					/* 0x0 Stack Pointer (EL0) */
+	u64 sp_el1;					/* 0x8 Stack Pointer (EL1) */
+	u64 elr_el1;				/* 0x10 Exception Link Register (EL1) */
+	u64 spsr_el1;				/* 0x18 Saved Program Status Register (EL1) */
+	u64 midr_el1;				/* 0x20 Main ID Register */
+	u64 mpidr_el1;				/* 0x28 Multiprocessor Affinity Register */
+	u64 sctlr_el1;				/* 0x30 System Control Register (EL1) */
+	u64 actlr_el1;				/* 0x38 Auxiliary Control Register (EL1) */
+	u64 cpacr_el1;				/* 0x40 Architectural Feature Access Control Register */
+	u64 ttbr0_el1;				/* 0x48 Translation Table Base Register 0 */
+	u64 ttbr1_el1;				/* 0x50 Translation Table Base Register 1 */
+	u64 tcr_el1;				/* 0x58 Translation Control Register (EL1) */
+	u64 esr_el1;				/* 0x60 Exception Syndrome Register (EL1) */
+	u64 far_el1;				/* 0x68 Fault Address Register (EL1) */
+	u64 par_el1;				/* 0x70  Physical Address Register */
+	u64 mair_el1;				/* 0x78 Memory Attribute Indirection Register(EL1) */
+	u64 vbar_el1;				/* 0x80 Vector Base Address Register (EL1)*/
+	u64 contextidr_el1;			/* 0x88 Context ID Register (EL1) */
+	u64 tpidr_el0;				/* 0x90 EL0 Read/Write Software Thread ID Register*/
+	u64 tpidr_el1;				/* 0x98 EL1 Software Thread ID Register*/
+	u64 tpidrro_el0;			/* 0xA0 EL0 Read-Only Software Thread ID Register */
+	u32 spsr_abt;				/* 0xA8 Saved Program Status Register (Abort mode) */
+	u32 spsr_und;				/* 0xAC Saved Program Status Register (Undefined mode) */
+	u32 spsr_irq;				/* 0xB0 Saved Program Status Register (IRQ mode) */
+	u32 spsr_fiq;				/* 0xB4 Saved Program Status Register (FIQ mode) */
+	u32 dacr32_el2;				/* 0xB8 Domain Access Control Register */
+	u32 ifsr32_el2;				/* 0xBC Instruction Fault Status Register (EL2) */
 	/* 32bit only ThumbEE registers */
 	u32 teecr32_el1;			/* 0xC0 */
 	u32 teehbr32_el1;			/* 0xC4 */

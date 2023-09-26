@@ -180,7 +180,7 @@
 				   asm volatile("mrs %0, id_aa64pfr0_el1" \
 						: "=r"(pfr0)); \
 				   ((pfr0 & ID_AA64PFR0_FPU_MASK) != 0xf); \
-				})
+				}) // surport float point feature
 
 #define cpu_supports_el0_a32()	({ u64 pfr0; \
 				   asm volatile("mrs %0, id_aa64pfr0_el1" \

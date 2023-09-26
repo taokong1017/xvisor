@@ -163,7 +163,7 @@ restore_skip_thumbee:
 
 	.globl cpu_vcpu_vfp_regs_save
 cpu_vcpu_vfp_regs_save:
-	str	x1, [sp, #-8]!
+	str	x1, [sp, #-8]! /* x1 -> vfp pointer */
 	/* Save floating point control registers */
 	mrs	x1, fpexc32_el2		/* fpexc32 */
 	str	w1, [x0, #ARM_PRIV_VFP_fpexc32]

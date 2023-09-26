@@ -1012,7 +1012,7 @@ asm(
 #define ARM_PRIV_VFP_mvfr2				0x8
 #define ARM_PRIV_VFP_fpcr				0xC
 #define ARM_PRIV_VFP_fpsr				0x10
-#define ARM_PRIV_VFP_fpexc32				0x14
+#define ARM_PRIV_VFP_fpexc32			0x14
 #define ARM_PRIV_VFP_fpregs				0x18
 
 /* Field offsets for struct arm_priv_ptrauth */
