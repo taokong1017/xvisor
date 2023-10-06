@@ -91,12 +91,12 @@ int arch_vcpu_irq_assert(struct vmm_vcpu *vcpu, u32 irq_no, u64 reason)
 
 	switch(irq_no) {
 	case CPU_EXTERNAL_IRQ:
-		hcr |= HCR_VI_MASK;
+		hcr |= HCR_VI_MASK; /*V irtual IRQ Interrupt */
 		/* VI bit will be cleared on deassertion */
 		update_hcr = TRUE;
 		break;
 	case CPU_EXTERNAL_FIQ:
-		hcr |= HCR_VF_MASK;
+		hcr |= HCR_VF_MASK; /* Virtual FIQ Interrupt */
 		/* VF bit will be cleared on deassertion */
 		update_hcr = TRUE;
 		break;

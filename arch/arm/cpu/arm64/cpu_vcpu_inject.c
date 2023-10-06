@@ -97,7 +97,7 @@ static int __cpu_vcpu_inject_und64(struct vmm_vcpu *vcpu,
 
 	/* Update ESR_EL1 */
 	esr = (EC_UNKNOWN << ESR_EC_SHIFT);
-	if (mrs(esr_el2) & ESR_IL_MASK) {
+	if (mrs(esr_el2) & ESR_IL_MASK) { /* 32-bit instruction trapped */
 		esr |= ESR_IL_MASK;
 	}
 	msr(esr_el1, esr);
@@ -262,7 +262,7 @@ int cpu_vcpu_inject_pabt(struct vmm_vcpu *vcpu,
 		vmm_panic("%s not called for current vcpu\n", __func__);
 	}
 
-	if (arm_priv(vcpu)->hcr & HCR_RW_MASK) {
+	if (arm_priv(vcpu)->hcr & HCR_RW_MASK) { /* AARCH64 status */
 		return __cpu_vcpu_inject_abt64(vcpu, regs, TRUE, regs->pc);
 	} else {
 		return __cpu_vcpu_inject_abt32(vcpu, regs, TRUE, regs->pc);

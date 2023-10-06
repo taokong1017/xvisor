@@ -732,8 +732,8 @@ void arch_vcpu_switch(struct vmm_vcpu *tvcpu,
 
 	/* Clear hypervisor context */
 	msr(hcr_el2, HCR_DEFAULT_BITS);
-	msr(cptr_el2, 0x0);
-	msr(hstr_el2, 0x0);
+	msr(cptr_el2, 0x0); /* Architectural Feature Trap Register */
+	msr(hstr_el2, 0x0); /* Hypervisor System Trap Register */
 
 	/* Save user registers & banked registers */
 	if (tvcpu) {

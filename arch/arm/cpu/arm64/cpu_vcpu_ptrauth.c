@@ -97,7 +97,7 @@ int cpu_vcpu_ptrauth_init(struct vmm_vcpu *vcpu)
 		goto done;
 	}
 
-	arm_priv(vcpu)->hcr |= (HCR_APL_MASK | HCR_APK_MASK);
+	arm_priv(vcpu)->hcr |= (HCR_APL_MASK | HCR_APK_MASK); // 禁止指针认证陷入EL2
 
 done:
 	return VMM_OK;

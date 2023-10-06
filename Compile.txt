@@ -98,5 +98,4 @@ XVisor# vserial bind guest0/uart0
 ./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d xvisor/build/vmm.elf > vmm.obj
 ./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d linux/vmlinux > linux.obj
 ./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d u-boot/u-boot > u-boot.obj
-./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d xvisor/build/tests/arm64/virt-v8/ \
-	basic/firmware.elf > firmware.elf
+./aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-objdump -d xvisor/build/tests/arm64/virt-v8/basic/firmware.elf > firmware.elf

@@ -122,6 +122,7 @@
 #define VA2PA_EL3		"e3"
 #define VA2PA_RD		"r"
 #define VA2PA_WR		"w"
+/* Address Translate intruction */
 #define va2pa_at(stage, el, rw, va)	asm volatile(	\
 					"at " stage el rw ", %0" \
 					: : "r"(va) : "memory", "cc");

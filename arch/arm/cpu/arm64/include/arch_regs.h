@@ -121,7 +121,7 @@ struct arm_priv {
 	/* Hypervisor context */
 	vmm_spinlock_t hcr_lock;
 	u64 hcr;	/* Hypervisor Configuration */
-	u64 cptr;	/* Coprocessor Trap Register */
+	u64 cptr;	/* Architectural Feature Trap Register */
 	u64 hstr;	/* Hypervisor System Trap Register */
 	/* EL1/EL0 sysregs */
 	struct arm_priv_sysregs sysregs;

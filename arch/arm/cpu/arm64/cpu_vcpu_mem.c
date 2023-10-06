@@ -48,6 +48,9 @@ int cpu_vcpu_mem_read(struct vmm_vcpu *vcpu,
 			data_endian = VMM_DEVEMU_LITTLE_ENDIAN;
 		}
 	} else { /* Aarch64 VCPU */
+		/* Endianness of data accesses at EL1, and stage 1 translation table
+		 * walks in the EL1&0 translation regime
+		 */
 		if (arm_priv(vcpu)->sysregs.sctlr_el1 & SCTLR_EE_MASK) {
 			data_endian = VMM_DEVEMU_BIG_ENDIAN;
 		} else {
@@ -56,10 +59,10 @@ int cpu_vcpu_mem_read(struct vmm_vcpu *vcpu,
 	}
 
 	/* Determine guest physical address */
-	va2pa_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_RD, addr);
-	guest_pa = mrs(par_el1);
-	guest_pa &= PAR_PA_MASK;
-	guest_pa |= (addr & 0x00000FFF);
+	va2pa_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_RD, addr); /* address translate */
+	guest_pa = mrs(par_el1); /* read physical address */
+	guest_pa &= PAR_PA_MASK; /* the maximum virtual address region size is 48 bits */
+	guest_pa |= (addr & 0x00000FFF); /* 4k bytes */
 
 	/* Do guest memory read */
 	switch (dst_len) {
@@ -117,7 +120,7 @@ int cpu_vcpu_mem_write(struct vmm_vcpu *vcpu,
 		}
 	}
 
-	/* Determine guest physical address */
+	/* Determine guest physical address by "at" instruction */
 	va2pa_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_WR, addr);
 	guest_pa = mrs(par_el1);
 	guest_pa &= PAR_PA_MASK;
